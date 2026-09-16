@@ -20,6 +20,33 @@ float		r_ssaLOD_A,			r_ssaLOD_B;
 float		r_ssaGLOD_start,	r_ssaGLOD_end;
 float		r_ssaHZBvsTEX;
 
+ICF bool R4FullDetailRejectStatic(dxRender_Visual* pVisual)
+{
+#if RENDER == R_R4
+	if (ps_r4_full_detail_distance_scale >= 1.f ||
+		RImplementation.phase != CRender::PHASE_NORMAL ||
+		!g_pGamePersistent || !g_pGamePersistent->Environment().CurrentEnv)
+		return false;
+
+	if (pVisual->Type == MT_LOD)
+		return false;
+
+	const float far_plane = g_pGamePersistent->Environment().CurrentEnv->far_plane;
+	const float full_detail_distance = _max(100.f, far_plane * ps_r4_full_detail_distance_scale);
+	const float dist_sq = Device.vCameraPosition.distance_to_sqr(pVisual->vis.sphere.P) + EPS;
+	const float nearest_distance = _sqrt(dist_sq) - pVisual->vis.sphere.R;
+	if (nearest_distance <= full_detail_distance)
+		return false;
+
+	const float transition_range = _max(1.f, far_plane - full_detail_distance);
+	const float transition = clampr((nearest_distance - full_detail_distance) / transition_range, 0.f, 1.f);
+	const float ssa = pVisual->vis.sphere.R / dist_sq;
+	return ssa <= r_ssaDISCARD * (1.f + transition * 11.f);
+#else
+	return false;
+#endif
+}
+
 ICF	float	CalcSSA				(float& distSQ, Fvector& C, dxRender_Visual* V)
 {
 	float R	= V->vis.sphere.R + 0;
@@ -362,6 +389,9 @@ void CRender::add_leafs_Dynamic	(dxRender_Visual *pVisual)
 void CRender::add_leafs_Static(dxRender_Visual *pVisual)
 {
 	//PROF_EVENT("add_leafs_Static")
+	if (R4FullDetailRejectStatic(pVisual))
+		return;
+
 #if RENDER!=R_R1
 	if(RImplementation.phase==CRender::PHASE_NORMAL)
 #endif
@@ -556,7 +586,10 @@ void CRender::add_Static(dxRender_Visual *pVisual, u32 planes)
 	EFC_Visible	VIS;
 	vis_data&	vis			= pVisual->vis;
 	VIS = View->testSAABB	(vis.sphere.P,vis.sphere.R,vis.box.data(),planes);
-	if (fcvNone==VIS)		
+	if (fcvNone==VIS)
+		return;
+
+	if (R4FullDetailRejectStatic(pVisual))
 		return;
 #if RENDER!=R_R1
 	if(RImplementation.phase==CRender::PHASE_NORMAL)

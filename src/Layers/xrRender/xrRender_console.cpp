@@ -181,6 +181,8 @@ float		ps_r2_dhemi_light_flow      = 0.1f	;
 int			ps_r2_dhemi_count			= 5;				// 5
 int			ps_r2_wait_sleep			= 0;
 
+float		ps_r4_full_detail_distance_scale = 0.5f;
+
 float		ps_r2_lt_smooth				= 1.f;				// 1.f
 float		ps_r2_slight_fade			= 0.6f;				// 1.f
 
@@ -756,6 +758,7 @@ void		xrRender_initconsole	()
 	CMD3(CCC_Mask, "r__optimize_shadow_geom", &ps_r__common_flags, RFLAG_OPT_SHAD_GEOM);
 	CMD3(CCC_Mask, "r__shader_cache", &ps_r__common_flags, RFLAG_USE_CACHE);
 	CMD3(CCC_Token, "r__screenshot_format", &ps_screenshot_format, screenshot_format_token);
+	CMD4(CCC_Float, "r4_full_detail_distance_scale", &ps_r4_full_detail_distance_scale, 0.1f, 1.0f);
 
 	CMD3(CCC_Mask, "r1_use_terrain_mask", &ps_r1_flags, R1FLAG_TERRAIN_MASK);
 

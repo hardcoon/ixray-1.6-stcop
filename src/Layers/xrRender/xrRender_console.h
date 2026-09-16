@@ -133,6 +133,7 @@ extern ECORE_API int opt_static;
 extern ECORE_API int opt_dynamic;
 
 extern ECORE_API int r_debug_render_depth;
+extern ECORE_API float ps_r4_full_detail_distance_scale;
 
 enum
 {
